@@ -4,13 +4,25 @@ import { StyleSheet } from "react-native";
 import 'react-native-gesture-handler';
 import { GiftedChat } from "react-native-gifted-chat";
 import db from "../firebase";
-import { collection, getDocs, onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { onSnapshot, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { useAuthentication } from "../utils/hooks/useAuthentication";
 
 export default function ChatScreen() {
     const [messages, setMessages] = useState([]);
+    // return [state, setState]
 
-    useEffect(() => {
-      let unsubscribeFromNewSnapshots = onSnapshot(doc(db, "Chats", "myFirstChat"), (snapshot) => {
+    const {userData} = useAuthentication();
+    console.log("USER DATA: ", userData);
+
+    // const onSend = useCallback(async(messages = []) => {
+    //   await updateDoc(doc(db, "Users", userData.uid), {
+    //     messages: arrayUnion(messages[0])
+    //   });
+    //     setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
+    // }, [])
+
+    useEffect(() => { 
+      let unsubscribeFromNewSnapshots = onSnapshot(doc(db, "Chats", "mySecondChat"), (snapshot) => {
         console.log("New Snapshot! ", snapshot.data().messages);
         setMessages(snapshot.data().messages);
       });
@@ -21,24 +33,28 @@ export default function ChatScreen() {
     }, []);
     
     const onSend = useCallback(async (messages = []) => {
-      await updateDoc(doc(db, "Chats", "myFirstChat"), {
+      await updateDoc(doc(db, "Chats", "mySecondChat"), {
         messages: arrayUnion(messages[0])
       });
-      setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
+      // setMessages(previousMessages => GiftedChat.append(previousMessages, messages))
     }, [])
   
     return (
       <GiftedChat
           messages={messages}
           onSend={(messages) => onSend(messages)}
-          user={{
+          user={
               // current "blue bubble" user
-              _id: "1",
-              name: "Ashwin",
-              avatar: "https://placeimg.com/140/140/any",
-          }}
+              userData
+              // {
+              //   id: user.uid
+              // }
+              // avatar: "https://placeimg.com/140/140/any",
+          }
+          inverted={false}
           showUserAvatar={true}
           renderUsernameOnMessage={true}
+          
       />
     );
   }
